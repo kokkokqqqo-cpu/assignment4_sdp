@@ -1,62 +1,65 @@
 package facade;
 
+import subsystem.CoffeeException;
+import subsystem.EspressoMachine;
 import subsystem.Grinder;
 import subsystem.MilkFrother;
 import subsystem.PaymentSystem;
-import subsystem.SyrupDispenser;
+
+import java.util.Map;
 
 public class CoffeeBaristaFacade {
-    private final Grinder grinder;
-    private final MilkFrother milkFrother;
-    private final SyrupDispenser syrupDispenser;
-    private final PaymentSystem paymentSystem;
+    private static final int ESPRESSO_PRICE = 3;
+    private static final int CAPPUCCINO_PRICE = 4;
+    private static final int COFFEE_DOSE_GRAMS = 18;
+    private static final int SHOT_ML = 30;
+    private static final int CAPPUCCINO_MILK_ML = 120;
 
-    public CoffeeBaristaFacade(Grinder grinder, MilkFrother milkFrother,
-                               SyrupDispenser syrupDispenser, PaymentSystem paymentSystem) {
-        this.grinder = grinder;
-        this.milkFrother = milkFrother;
-        this.syrupDispenser = syrupDispenser;
-        this.paymentSystem = paymentSystem;
-    }
+    private final Grinder grinder = new Grinder(200);
+    private final EspressoMachine espressoMachine = new EspressoMachine(1000);
+    private final MilkFrother milkFrother = new MilkFrother(
+            Map.of("Whole Milk", 250, "Oat Milk", 500));
+    private final PaymentSystem paymentSystem = new PaymentSystem(
+            Map.of("alice", 30, "bob", 2));
 
-    public void orderEspresso(double price) {
-        System.out.println("\n*Starting Espresso Preparation*");
-        if (!paymentSystem.processPayment(price)) {
-            System.out.println("[Facade] Order canceled due to payment failure.");
-            return;
-        }
-
-        grinder.grindBeans("Arabica Dark Roast");
-        System.out.println("[Facade] Your Espresso is ready!");
-    }
-
-    public void orderCappuccino(double price, String milkType) {
-        System.out.println("\n*Starting Cappuccino Preparation*");
-        if (!paymentSystem.processPayment(price)) {
-            System.out.println("[Facade] Order canceled due to payment failure.");
-            return;
-        }
-
-        grinder.grindBeans("Arabica Medium Roast");
-        milkFrother.frothMilk(milkType);
-        System.out.println("[Facade] Your Cappuccino is ready!");
-    }
-
-    public void orderCaramelMacchiato(double price, String milkType) {
-        System.out.println("\n*Starting Caramel Macchiato Preparation*");
-        if (!paymentSystem.processPayment(price)) {
-            System.out.println("[Facade] Order canceled due to payment failure.");
-            return;
+    public String orderEspresso(String customer) {
+        try {
+            paymentSystem.charge(customer, ESPRESSO_PRICE);
+        } catch (CoffeeException e) {
+            return "Payment declined: " + e.getMessage();
         }
 
         try {
-            grinder.grindBeans("Arabica Premium");
-            syrupDispenser.addSyrup("Caramel");
-            milkFrother.frothMilk(milkType);
-            System.out.println("[Facade] Your Caramel Macchiato is ready!");
-        } catch (Exception e) {
-            System.out.println("[Facade] Preparation failed! Rolling back transaction...");
-            paymentSystem.refundPayment(price);
+            makeEspressoShot();
+            return "Your espresso is ready!";
+        } catch (CoffeeException e) {
+            return refundAfterProblem(customer, ESPRESSO_PRICE, e);
         }
+    }
+
+    public String orderCappuccino(String customer, String milkType) {
+        try {
+            paymentSystem.charge(customer, CAPPUCCINO_PRICE);
+        } catch (CoffeeException e) {
+            return "Payment declined: " + e.getMessage();
+        }
+
+        try {
+            makeEspressoShot();
+            milkFrother.froth(milkType, CAPPUCCINO_MILK_ML);
+            return "Your cappuccino with " + milkType + " is ready!";
+        } catch (CoffeeException e) {
+            return refundAfterProblem(customer, CAPPUCCINO_PRICE, e);
+        }
+    }
+
+    private void makeEspressoShot() throws CoffeeException {
+        int groundCoffee = grinder.grind(COFFEE_DOSE_GRAMS);
+        espressoMachine.makeShot(groundCoffee, SHOT_ML);
+    }
+
+    private String refundAfterProblem(String customer, int price, CoffeeException problem) {
+        paymentSystem.refund(customer, price);
+        return "Sorry, we could not make your drink: " + problem.getMessage() + ". Your money was returned.";
     }
 }

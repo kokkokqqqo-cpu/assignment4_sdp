@@ -1,28 +1,33 @@
 import facade.CoffeeBaristaFacade;
-import subsystem.Grinder;
-import subsystem.MilkFrother;
-import subsystem.PaymentSystem;
-import subsystem.SyrupDispenser;
 
 public class Main {
     public static void main(String[] args) {
-        Grinder grinder = new Grinder();
-        MilkFrother frother = new MilkFrother();
-        SyrupDispenser dispenser = new SyrupDispenser();
-        PaymentSystem payment = new PaymentSystem();
+        CoffeeBaristaFacade barista = new CoffeeBaristaFacade();
 
-        CoffeeBaristaFacade barista = new CoffeeBaristaFacade(grinder, frother, dispenser, payment);
+        System.out.println("=== 1. Alice orders an espresso ===");
+        System.out.println(barista.orderEspresso("alice"));
 
-        System.out.println("*** Client #1 ordering Espresso ***");
-        barista.orderEspresso(3.00);
+        System.out.println("\n=== 2. Alice orders a cappuccino with oat milk ===");
+        System.out.println(barista.orderCappuccino("alice", "Oat Milk"));
 
-        System.out.println("\n*** Client #2 ordering Cappuccino ***");
-        barista.orderCappuccino(4.00, "Whole Milk");
+        System.out.println("\n=== 3. Alice orders a cappuccino with whole milk ===");
+        System.out.println(barista.orderCappuccino("alice", "Whole Milk"));
 
-        System.out.println("\n*** Client #3 ordering Caramel Macchiato ***");
-        barista.orderCaramelMacchiato(5.00, "Oat Milk");
+        System.out.println("\n=== 4. Alice orders one more cappuccino with whole milk ===");
+        System.out.println(barista.orderCappuccino("alice", "Whole Milk"));
 
-        System.out.println("\n*** Expert accessing subsystem directly ***");
-        grinder.grindBeans("Robusta Extra");
+        System.out.println("\n########## Problems ##########");
+
+        System.out.println("\n=== 5. Whole milk is almost finished (drink fails, money returned) ===");
+        System.out.println(barista.orderCappuccino("alice", "Whole Milk"));
+
+        System.out.println("\n=== 6. Bob has too little money (payment declined) ===");
+        System.out.println(barista.orderCappuccino("bob", "Oat Milk"));
+
+        System.out.println("\n=== 7. Coconut milk does not exist (drink fails, money returned) ===");
+        System.out.println(barista.orderCappuccino("alice", "Coconut Milk"));
+
+        System.out.println("\n=== 8. Unknown customer (payment declined) ===");
+        System.out.println(barista.orderEspresso("mallory"));
     }
 }
