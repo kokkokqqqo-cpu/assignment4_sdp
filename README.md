@@ -1,35 +1,59 @@
-# Coffee Shop Express Barista (Facade Pattern) 
+# Assignment 4 - Facade Pattern (Coffee Barista)
 
-This repository contains an implementation of the **Facade Structural Design Pattern** in Java for a Coffee Shop Management System.
+Student: Azhikhat Nurai, SE2523 | Course: ShP-2216 Software Design Patterns 
 
-##  Project Overview
-In a coffee shop, preparing a drink like a **Caramel Macchiato** requires interacting with multiple complex machines:
-1. Grinding coffee beans
-2. Dispensing flavored syrups
-3. Frothing milk
-4. Processing payment and managing rollbacks
+## What is this project?
 
-Without a **Facade**, the client (customer/cashier) would have to manually operate and coordinate all four machines in the correct order. The `CoffeeBaristaFacade` class simplifies this process by providing simple, high-level methods like `orderCaramelMacchiato()`, hiding the inner complexity of the subsystem.
+A small coffee shop. To make a coffee we need four machines: a grinder, an espresso machine,
+a milk frother and a payment system. The client should not control all of them by himself.
+So I made one class, `CoffeeBaristaFacade`, that does it for the client.
 
----
+```java
+CoffeeBaristaFacade barista = new CoffeeBaristaFacade();
+System.out.println(barista.orderCappuccino("alice", "Oat Milk"));
+```
 
-##  Subsystem Components
-The project consists of 4 main subsystem classes:
-* **`Grinder`**: Handles grinding different types of coffee beans.
-* **`MilkFrother`**: Froths different milk types (Whole, Oat, etc.).
-* **`SyrupDispenser`**: Dispenses flavored syrups (Caramel, Vanilla, etc.).
-* **`PaymentSystem`**: Processes transactions and handles refunds on failure.
+If something goes wrong after the payment (for example, no milk), the facade returns the money.
 
----
+## Folders
 
-##  Key Design Highlights
-* **Simplified API**: Clients can order complex drinks via single method calls (`orderEspresso`, `orderCappuccino`, `orderCaramelMacchiato`).
-* **Error Handling & Rollback**: If a payment fails, the transaction is canceled and no beans or milk are wasted.
-* **Direct Access Preserved**: Expert clients can still access subsystem components directly (e.g., calling `Grinder` directly) without bypassing or breaking the Facade pattern.
+```
+src/
+  Main.java                   the client (uses ONLY the facade)
+  AdvancedClientDemo.java     client that does NOT use the facade (uses subsystem directly)
+  facade/
+    CoffeeBaristaFacade.java  the Facade
+  subsystem/
+    Grinder.java              beans
+    EspressoMachine.java      makes the shot
+    MilkFrother.java          milk
+    PaymentSystem.java        money, charge and refund
+    CoffeeException.java      one exception for all problems
+test/
+  CoffeeBaristaFacadeTest.java   simple tests
+docs/
+  uml.png, demo_output.txt, test_output.txt
+```
 
----
+## How to run (JDK 17)
 
-##  How to Run
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/kokkokqqqo-cpu/assignment4_sdp.git](https://github.com/kokkokqqqo-cpu/assignment4_sdp.git)
+```
+mkdir out
+javac -d out src/*.java src/facade/*.java src/subsystem/*.java test/*.java
+java -cp out Main
+java -cp out AdvancedClientDemo
+java -cp out CoffeeBaristaFacadeTest
+```
+
+In IntelliJ: mark `src` as Sources Root, `test` as Test Sources Root, run `Main`.
+
+## Check with the task
+
+| Task requirement | Where |
+|---|---|
+| 3+ subsystem classes with real work | Grinder, EspressoMachine, MilkFrother, PaymentSystem |
+| Facade with a small API, right order | CoffeeBaristaFacade (2 order methods) |
+| Client uses only the facade | Main (only one import: the facade) |
+| Subsystem does not know the facade | no word "facade" in the `subsystem` folder |
+| Subsystem can be used directly | AdvancedClientDemo |
+| Error handling | payment declined / money returned when the drink fails |
